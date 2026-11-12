@@ -1,0 +1,35 @@
+[project]
+name = "kozo"
+version = "1.0.0"
+description = "Kozo, a typewriter face"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "OFL-1.1"
+license-files = ["OFL.txt"]
+authors = [{ name = "Keaton Elvins" }]
+dependencies = [
+    "booleanoperations>=0.9",
+    "fonttools[ufo,unicode,woff]>=4.60",
+    "glyphslib>=6.12",
+    "ufo2ft>=3.6",
+    "ufolib2>=0.18",
+]
+
+[project.urls]
+Repository = "https://github.com/keatonelvins/kozo"
+
+[project.scripts]
+kozo = "kozo.build:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kozo"]
+
+[tool.ruff]
+line-length = 120

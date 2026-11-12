@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+.pytest_cache/
+build/
+paper-mono/
+.DS_Store
