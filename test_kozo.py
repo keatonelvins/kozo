@@ -55,8 +55,9 @@ def test_one_mark_one_size(lettered):
         sides = set()
         for contour in font[name].contours:
             xs, ys = zip(*corners(contour))
-            if len(contour.points) == 4 and max(xs) - min(xs) == max(ys) - min(ys):
-                sides.add(max(xs) - min(xs))
+            wide, tall = round(max(xs) - min(xs), 6), round(max(ys) - min(ys), 6)  # a dot off the grid is a float
+            if len(contour.points) == 4 and wide == tall:
+                sides.add(wide)
         (side,) = sides
         return side
 
@@ -194,7 +195,7 @@ def test_descenders_reach_their_line(lettered):
     under, foot = lowest("g")
     assert foot == lowest("jdotless")[1] == pytest.approx(config.DESCENDER - metrics.overshoot)  # a hook passes it
     (low, high), *_ = runs(polygons(font, font["g"]), x=under)
-    assert high - low == pytest.approx(metrics.stem, rel=0.15)  # and is as heavy as it was: only the upright above it grew
+    assert high - low == pytest.approx(metrics.bar, rel=0.15)  # and is as heavy as it was: only the upright above it grew
     (below,) = (anchor.y for anchor in font["g"].anchors if anchor.name == "bottom")
     assert below == pytest.approx(foot)  # a mark below hangs from the new foot
 

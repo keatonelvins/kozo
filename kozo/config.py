@@ -23,7 +23,8 @@ DESCENDER = -225
 class Style:
     name: str
     weight_class: int     # CSS weight
-    paper_weight: float   # on Paper Mono's weight axis (its Regular is 86)
+    paper_weight: float   # on Paper Mono's weight axis (its Regular is 86): how heavy the upright strokes are
+    level_weight: float | None = None  # how heavy the level ones are, if not the same
 
     @property
     def filename(self) -> str:

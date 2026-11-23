@@ -18,6 +18,7 @@ class Metrics:
     overshoot: float   # how far rounds pass the baseline and the x-height
     stem: float        # of n
     cap_stem: float    # of H
+    bar: float         # of H
 
 
 def measure(font) -> Metrics:
@@ -32,6 +33,7 @@ def measure(font) -> Metrics:
         overshoot=-min(y for outline in polygons(font, font["o"]) for _, y in outline),
         stem=_first_stem(font, "n", info.xHeight),
         cap_stem=_first_stem(font, "H", info.capHeight),
+        bar=_bar(font, "H"),
     )
 
 
@@ -39,6 +41,12 @@ def _first_stem(font, name: str, height: float) -> float:
     """How wide the leftmost stroke of a glyph is, a quarter of the way up `height`."""
     left, right = runs(polygons(font, font[name]), y=height / 4)[0]
     return right - left
+
+
+def _bar(font, name: str) -> float:
+    """How heavy the lowest level stroke of a glyph is, down the middle of its cell."""
+    low, high = runs(polygons(font, font[name]), x=font[name].width / 2)[0]
+    return high - low
 
 
 def fit(font, kept, metrics: Metrics) -> Metrics:

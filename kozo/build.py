@@ -58,14 +58,35 @@ def _instance(weight: float) -> ufoLib2.Font:
     return _instantiator().generate_instance(location)
 
 
-def paper_mono(weight: float) -> ufoLib2.Font:
-    """A fresh copy of Paper Mono at `weight` on its design axis."""
-    return copy.deepcopy(_instance(float(weight)))
+def paper_mono(weight: float, level: float | None = None) -> ufoLib2.Font:
+    """A fresh copy of Paper Mono at `weight` on its design axis, its heights read at `level` if that is another weight.
+
+    Widths set how heavy an upright stroke is and heights how heavy a level one, so the two weights part them.
+    """
+    font = copy.deepcopy(_instance(float(weight)))
+    if level is not None and level != weight:
+        _take_heights(font, _instance(float(level)))
+    return font
+
+
+def _take_heights(font: ufoLib2.Font, other: ufoLib2.Font) -> None:
+    """Give every point, anchor and part of `font` the height it has in `other`, the same drawing at another weight."""
+    for glyph in font:
+        source = other[glyph.name]
+        for contour, source_contour in zip(glyph.contours, source.contours, strict=True):
+            for point, source_point in zip(contour.points, source_contour.points, strict=True):
+                point.y = source_point.y
+        for anchor, source_anchor in zip(glyph.anchors, source.anchors, strict=True):
+            anchor.y = source_anchor.y
+        for component, source_component in zip(glyph.components, source.components, strict=True):
+            xx, _, yx, _, dx, _ = component.transformation
+            _, xy, _, yy, _, dy = source_component.transformation
+            component.transformation = (xx, xy, yx, yy, dx, dy)
 
 
 def letter(style: config.Style):
     """Paper Mono at this style's weight, on the grid, with Kozo's letters drawn. Returns font, kept glyphs, metrics."""
-    font = paper_mono(style.paper_weight)
+    font = paper_mono(style.paper_weight, style.level_weight)
     metrics = grid.measure(font)
     add_stand_ins(font)
     kept = sorted(kept_glyphs(font))

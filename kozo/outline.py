@@ -88,7 +88,8 @@ def remove_overlaps(glyph) -> None:
 
 
 def snap(glyph) -> None:
-    """Put every point on a whole unit, dropping a segment that closes up to nothing."""
+    """Put every point on a whole unit, dropping a segment that closes up to nothing and straightening a curve
+    whose handles close up onto its ends."""
     for contour in glyph.contours:
         points = contour.points
         for point in points:
@@ -97,8 +98,12 @@ def snap(glyph) -> None:
         dropped: set[int] = set()
         for previous, end in zip(ends[-1:] + ends[:-1], ends):
             handles = [(previous + 1 + step) % len(points) for step in range((end - previous - 1) % len(points))]
-            if (points[end].x, points[end].y) == (points[previous].x, points[previous].y):
+            start, stop = (points[previous].x, points[previous].y), (points[end].x, points[end].y)
+            if start == stop:
                 dropped.update(handles, [end])
+            elif handles and all((points[handle].x, points[handle].y) in (start, stop) for handle in handles):
+                dropped.update(handles)
+                points[end].type = "line"
         if len(ends) - sum(index in dropped for index in ends) > 1:
             contour.points = [point for index, point in enumerate(points) if index not in dropped]
 
