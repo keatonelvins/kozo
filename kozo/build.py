@@ -2,6 +2,7 @@
 import argparse
 import copy
 import functools
+import math
 import tarfile
 import time
 import urllib.request
@@ -76,12 +77,32 @@ def _take_heights(font: ufoLib2.Font, other: ufoLib2.Font) -> None:
         for contour, source_contour in zip(glyph.contours, source.contours, strict=True):
             for point, source_point in zip(contour.points, source_contour.points, strict=True):
                 point.y = source_point.y
+            _smooth(contour)
         for anchor, source_anchor in zip(glyph.anchors, source.anchors, strict=True):
             anchor.y = source_anchor.y
         for component, source_component in zip(glyph.components, source.components, strict=True):
             xx, _, yx, _, dx, _ = component.transformation
             _, xy, _, yy, _, dy = source_component.transformation
             component.transformation = (xx, xy, yx, yy, dx, dy)
+
+
+def _smooth(contour) -> None:
+    """Straighten the path through each smooth point: widths and heights from two weights leave a slight bend there."""
+    points = contour.points
+    for index, point in enumerate(points):
+        before, after = points[index - 1], points[(index + 1) % len(points)]
+        handles = [neighbour for neighbour in (before, after) if neighbour.type is None]
+        if not point.smooth or point.type is None or not handles:
+            continue
+        # Through two handles the path runs as the line from one to the other does; out of a straight, as the straight.
+        along = math.atan2(after.y - before.y, after.x - before.x) if len(handles) == 2 else (
+            math.atan2(point.y - before.y, point.x - before.x) if after.type is None
+            else math.atan2(after.y - point.y, after.x - point.x)
+        )
+        for handle, sign in ((before, -1), (after, 1)):
+            if handle.type is None:
+                reach = sign * math.hypot(handle.x - point.x, handle.y - point.y)
+                handle.x, handle.y = point.x + reach * math.cos(along), point.y + reach * math.sin(along)
 
 
 def letter(style: config.Style):
@@ -123,8 +144,8 @@ def name(font, style: config.Style) -> None:
     info.postscriptFontName = style.filename
     info.openTypeOS2WeightClass = style.weight_class
     info.postscriptIsFixedPitch = True
-    info.versionMajor, info.versionMinor = major, minor
-    info.openTypeNameUniqueID = f"{major}.{minor:03d};{style.filename}"
+    info.versionMajor, info.versionMinor = major, minor * 100  # a font counts in thousandths: Kozo 1.1 is 1.100
+    info.openTypeNameUniqueID = f"{major}.{minor * 100:03d};{style.filename}"
     info.copyright = config.COPYRIGHT
     info.openTypeNameDesigner = f"{info.openTypeNameDesigner}, {config.DESIGNER}"  # after Paper Mono's
     info.openTypeNameDesignerURL = config.REPOSITORY

@@ -7,8 +7,8 @@ PAPER_MONO = "74fc5537cc1f7b39aa8cccfa7dd3822e17143cca"  # the upstream commit K
 FONTS = ROOT / "fonts"
 
 FAMILY = "Kozo"
-VERSION = (1, 0)
-RELEASED = (2026, 11, 12)  # stamped in place of the build time, so a build repeats exactly
+VERSION = (1, 1)
+RELEASED = (2026, 11, 23)  # stamped in place of the build time, so a build repeats exactly
 REPOSITORY = "https://github.com/keatonelvins/kozo"
 COPYRIGHT = " ".join(f"{notice}." for notice in (ROOT / "OFL.txt").read_text().split("\n\n")[0].splitlines())
 DESIGNER = "Keaton Elvins"
@@ -31,4 +31,5 @@ class Style:
         return f"{FAMILY}-{self.name}"
 
 
-STYLES = (Style("Regular", 400, 76), Style("Medium", 500, 93))
+# The bars keep the weight Kozo 1.0 had all round; the stems are heavier, as a typewriter's are.
+STYLES = (Style("Regular", 400, 84, 76), Style("Medium", 500, 103, 93))
